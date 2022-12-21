@@ -1,0 +1,174 @@
+#!/bin/bash
+vers="0.1 Beta"
+
+deltemp () {
+rm -rf /tmp/filelist.tmp >/dev/null 2>&1
+}
+
+#Colours
+green='\033[92m'
+yellow='\e[0;33m'
+orange='\e[38;5;166m'
+cyan='\e[0;36m'
+red='\e[0;31m'
+white='\e[0;37m'
+
+
+function help () {
+echo -e "$green""ConvAudio $vers"
+echo -e "$yellow""-------------------------"
+echo -e "$white""options :"
+echo -e "$white""-d $orange(Input Directory)"
+echo -e "$white""-i $orange(Input Conversion (wav,ape,flac,wv,alac,mp3,m4a,aif,aiff)"
+echo -e "$white""-o $orange(Output conversion (wav,ape,flac,wv,alac,mp3,m4a,aif,aiff)"
+echo -e "$white""-r $orange(Remove Original File after conversion)"
+echo ""
+echo -e "$green""Example 1 :$white convaudio -d /my_audio_folder -i ape -o flac"
+echo -e "$green""Example 2 :$white convaudio -d /my_audio_folder -i m4a -o wav -r"
+exit 0
+	
+}
+function depedency () {
+echo -ne "$green""Checking Dependencies ...."
+chkffmpg=$(apt-cache policy ffmpeg | grep "Installed" | awk '{print$2}')
+if [[ "$chkffmpg" == "(none)" ]]
+then
+echo -e "$red""Error"
+      echo -e "$green""Ffmpeg Missing"
+      echo ""
+echo -e "$white""Try : apt install ffmpeg"
+exit 1
+else
+echo "$green""Done"
+fi
+
+}
+clear
+var="$@"
+
+rfl=$(echo "$var" | grep -w "\-r")
+if [[ ! -z "$rfl" ]]
+then
+rfl="1"
+else 
+rfl="0"
+fi
+
+if [[ -z "$var" ]]
+then
+depedency
+help
+fi
+echo -e "$green""---------- ConvAudio $vers -----------"
+deltemp
+depedency
+
+# Check for input directory to search for files
+inp=$(echo "$var" | grep -oP '(?<=-d )[^ ]*')
+if [[ -z "$inp" ]]
+then
+echo -e "$white""-No Input Directory was provided"
+exit 0
+else
+if [[ ! -d "$inp" ]]
+then
+echo -e "$white""-Input Directory :$red $inp$white (Does not Exist)"
+exit 0
+fi
+fi
+
+flext=$(echo "$var" | grep -oP '(?<=-i )[^ ]*')
+if [[ -z "$flext" ]]
+then
+echo -e "$white""-No File Extension was provided to convert from"
+echo -e "$green""Options :$white ape$green |$white alac$green |$white wv$green |$white wav$green |$white flac$green |$white mp3$green |$white m4a$green |$white aif$green |$white aiff $green with the switch -i"
+exit 0
+else
+if [ "$flext" != "ape" ] && [ "$flext" != "alac" ] && [ "$flext" != "wv" ] && [ "$flext" != "wav" ] && [ "$flext" != "flac" ] && [ "$flext" != "m4a" ] && [ "$flext" != "aif" ] && [ "$flext" != "aiff" ]; then
+echo -e "$white""-The Files Extension provided is not valid$red ($flext)"
+echo -e "$green""Available extensions to split :$white ape$green |$white alac$green |$white wv$green |$white wav$green |$white flac$green |$white mp3$green |$white m4a$green |$white aif$green |$white aiff"
+exit 0
+fi
+fi
+
+
+chkfl=$(find "$inp" -type f -name "*.$flext")
+if [[ -z "$chkfl" ]]
+then
+echo -e "$white""-No files with$green ($flext)$white were found in$cyan $inp"
+echo -e "$white""Make sure you check first exists those files extensions on input directory."
+exit 0
+fi 
+
+outconv=$(echo "$var" | grep -oP '(?<=-o )[^ ]*')
+if [[ -z "$outconv" ]]
+then
+echo -e "$white""-No Output conversion was provided"
+echo -e "$green""Options : ($white ape$green |$white alac$green |$white wv$green |$white wav$green |$white flac$green |$white mp3$green |$white m4a$green |$white aif$green |$white aiff ) with the switch$green -o"
+exit 0
+else
+if [ "$outconv" != "ape" ] && [ "$outconv" != "alac" ] && [ "$outconv" != "wv" ] && [ "$outconv" != "wav" ] && [ "$outconv" != "flac" ] && [ "$outconv" != "mp3" ] && [ "$outconv" != "m4a" ] && [ "$outconv" != "aif" ] && [ "$outconv" != "aiff" ]; then
+echo -e "$white""-The Output Conversion is not valid ($outconv)"
+exit 0
+fi
+fi
+if [[ "$flext" == "$outconv" ]]
+then
+echo "Are you serious !!!!"
+echo "This tool does not convert $flext to $outconv"
+echo "Makes no sense :D"
+exit 0
+fi
+echo ""
+echo -e "$white""Input Directory :$green $inp"
+echo -e "$white""Files to Search :$green $flext"
+echo -e "$white""Will be converted to :$green $outconv"
+
+deltemp
+
+# Find every cue file in desired input directory
+echo -ne "$white""Searching :$green $inp ..."
+find "$inp" -type f -name "*.$flext" > /tmp/filelist.tmp
+echo -e "$white""Done"
+
+cntfile=$(wc -l /tmp/filelist.tmp | awk '{print$1}')
+
+dirread=""
+for i in $(seq "$cntfile")
+# 
+do
+rdfl=$(sed -n "${i}p" /tmp/filelist.tmp)
+file=$(echo "$rdfl" | sed 's@.*/@@')
+filename=$(echo "$rdfl" | sed 's@.*/@@' | sed 's/\.[^.]*$//')
+dirname=$(echo "$rdfl" | sed -r 's|/[^/]+$||')
+if [[ "$dirread" != "$dirname" ]]
+then
+echo -e "$orange""Working Dir:$white $dirname"
+dirread="$dirname"
+fi
+if [[ -f "$dirname/$filename.$outconv" ]]
+then
+wrtfile="$dirname/$filename copy.$outconv"
+filedisp="$filename copy.$outconv"
+else
+wrtfile="$dirname/$filename.$outconv"
+filedisp="$filename.$outconv"
+fi
+echo -ne "$green""Converting :$white $file$green to$white $filedisp ..."
+ffmpeg -i "$rdfl" "$wrtfile" >/dev/null 2>&1
+if [[ -f "$dirname/$filename.$outconv" ]]
+then
+if [[ -s "$dirname/$filename.$outconv" ]]
+then
+echo -e "$green""Done"
+else
+echo -e "$red""Error"
+rfl="0"
+fi
+fi
+if [[ "$rfl" == "1" ]]
+then
+rm -rf "$rdfl" >/dev/null 2>&1
+fi
+done
+
