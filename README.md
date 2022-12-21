@@ -14,3 +14,8 @@ Audio converter Script using ffmpeg
 (Will remove original file after suceffull conversion)
 
 ![screenshot](https://i.postimg.cc/d0YjdRRG/shutter.png)
+
+## Notes
+- This tool works recursively , this means it will search inside input folder all files with selected extension to convert and sub folders
+- It is advised to use ffmpeg using apt instalation to avoid missing codecs on manual compilation
+- This tool does not write idtag on converted files , this means that on converted file the name,song and all other metadata will be empty . 
