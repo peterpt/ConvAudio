@@ -1,22 +1,27 @@
-# ConvAudio
+# ConvAudio 1.0
 Audio converter Script using ffmpeg
 
 ## Dependencies
 - ffmpeg
 
 ## Conversions
--wav|flac|wv|m4a|aif|aiff|mp3|ape|alac
+![screenshot](https://i.postimg.cc/3Nf6qX4W/conv.png)
 
 ## Execution
-- convaudio -d /myaudiofiles -i m4a -o flac 
+- convaudio -id /myaudiofiles -ic m4a -oc flac 
 (Will not remove original file after conversion)
-- convaudio -d /myaudiofiles -i m4a -o flac -r
+- convaudio -id /myaudiofiles -ic m4a -oc flac -r
 (Will remove original file after suceffull conversion)
+- convaudio -id /myaudiofiles -ic m4a -oc flac -od /converted_files 
+(Will not remove original file after suceffull conversion and converted files will be placed on desired directory)
 
 ![screenshot](https://i.postimg.cc/d0YjdRRG/shutter.png)
+
+## Switches
+![screenshot](https://i.postimg.cc/SNyC10kX/switches.png)
 
 ## Notes
 - This tool works recursively , this means it will search inside input folder all files with selected extension to convert and sub folders
 - It is advised to use ffmpeg using apt instalation to avoid missing codecs on manual compilation
-- This tool does not write idtag on converted files , this means that on converted file the name,song and all other metadata will be empty . 
-- Output converted files will be placed on same original file location
+
+
