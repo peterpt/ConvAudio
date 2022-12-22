@@ -18,7 +18,7 @@ Audio converter Script using ffmpeg
 ![screenshot](https://i.postimg.cc/d0YjdRRG/shutter.png)
 
 ## Switches
-![screenshot](https://i.postimg.cc/SNyC10kX/switches.png)
+![screenshot](https://i.postimg.cc/wBVdVsVR/switches.png)
 
 ## Notes
 - This tool works recursively , this means it will search inside input folder all files with selected extension to convert and sub folders
